@@ -46,9 +46,11 @@ public class DataBase {
 
     public static String CheckoutBackString(File file , String string) throws IOException {
         List<String> list = Files.readAllLines(file.toPath());
-        for (String s : list)
+        for (String s : list ){
+            //System.out.println("s = "+s);
             if (s.contains(string))
                 return s;
+        }
         return "not found";
     }
 }
