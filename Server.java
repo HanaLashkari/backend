@@ -135,6 +135,18 @@ class ClientHandlerForLogin extends Thread {
                     writer(stringBuffer.toString());
                     break;
                 }
+                case "showAssignment" :{
+                    List<String> list = showAssignment();
+                    StringBuffer stringBuffer = new StringBuffer();
+                    for(int i=0 ; i< list.size() ; i++) {
+                        if (i == list.size() - 1)
+                            stringBuffer.append(list.get(i));
+                        else stringBuffer.append(list.get(i)).append("=");
+                    }
+                    System.out.println(stringBuffer.toString());
+                    writer(stringBuffer.toString());
+                    break;
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -232,13 +244,13 @@ class ClientHandlerForLogin extends Thread {
         return i;
     }
 
-    private List<String> showAssignment(String command) throws IOException {
+    private List<String> showAssignment() throws IOException {
         List<String> assignments = Files.readAllLines(Paths.get("C:\\Users\\Asus\\Desktop\\project\\assignmetOfstudent\\student" + id + ".txt"));
         List<String> allAssignments = new ArrayList<>();
         for (String assignment : assignments){
             String[] parts = assignment.split("-");
             StringBuffer s = new StringBuffer();
-            s.append(parts[0]).append("-").append(parts[2]).append("-").append(findGrade(parts[1]));
+            s.append(parts[0]).append("-").append(parts[2]).append("-").append(findGrade(parts[1])).append("-").append(parts[4]);
             allAssignments.add(s.toString());
         }
         return allAssignments;

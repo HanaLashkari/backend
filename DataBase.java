@@ -37,6 +37,8 @@ public class DataBase {
     }
 
     public static boolean checkOut(File file , String string) throws IOException {
+        if(!file.exists())
+            return false;
         List<String> list = Files.readAllLines(file.toPath());
         for(String s : list)
             if(s.contains(string))
