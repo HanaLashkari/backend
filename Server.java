@@ -192,7 +192,7 @@ class ClientHandlerForLogin extends Thread {
         return "not found";
     }
 
-    public List<String> showClass() throws IOException {
+    private List<String> showClass() throws IOException {
         List<String> courses = Files.readAllLines(Paths.get("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student" + id + ".txt"));
         List<String> classes = new ArrayList<>();
         for (String course : courses){
@@ -230,6 +230,34 @@ class ClientHandlerForLogin extends Thread {
             e.printStackTrace();
         }
         return i;
+    }
+
+    private List<String> showAssignment(String command) throws IOException {
+        List<String> assignments = Files.readAllLines(Paths.get("C:\\Users\\Asus\\Desktop\\project\\assignmetOfstudent\\student" + id + ".txt"));
+        List<String> allAssignments = new ArrayList<>();
+        for (String assignment : assignments){
+            String[] parts = assignment.split("-");
+            StringBuffer s = new StringBuffer();
+            s.append(parts[0]).append("-").append(parts[2]).append("-").append(findGrade(parts[1]));
+            allAssignments.add(s.toString());
+        }
+        return allAssignments;
+    }
+
+    private String findGrade(String command) throws IOException {
+        Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\gradeOfstudentForcourse\\course" + command + ".txt");
+        if(!p.toFile().exists())
+            return "The are not any grades";
+        List<String> grades = Files.readAllLines(p);
+        String s = "The are not any grades";
+        for(String grade : grades){
+            String[] parts = grade.split("-");
+            if(parts[0].equals(id)){
+                s = parts[1];
+                break;
+            }
+        }
+        return s;
     }
 
 }
