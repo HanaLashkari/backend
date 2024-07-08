@@ -152,6 +152,28 @@ class ClientHandlerForLogin extends Thread {
                     String s = listener();
                     changeProject(title , s);
                 }
+                case "addToDoList" :{
+                    String s = listener();
+                    System.out.println("added to do list = " + s);
+                    addToDoList(s);
+                    break;
+                }
+                case "showToDoList" :{
+                    List<String> list = showToDoList();
+                    StringBuffer stringBuffer = new StringBuffer();
+                    for(int i=0 ; i< list.size() ; i++) {
+                        if (i == list.size() - 1)
+                            stringBuffer.append(list.get(i));
+                        else stringBuffer.append(list.get(i)).append("=");
+                    }
+                    System.out.println(stringBuffer.toString());
+                    writer(stringBuffer.toString());
+                    break;
+                }
+                case "doTask" :{
+                    doTask(listener());
+                    break;
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -179,7 +201,6 @@ class ClientHandlerForLogin extends Thread {
             System.out.println("signup was completed.");
         }
     }
-
     private void login(){
         String command = "";
         try {
@@ -196,7 +217,6 @@ class ClientHandlerForLogin extends Thread {
         }
         System.out.println("login was completed.");
     }
-
     private String addClass(String command) throws IOException {
         if(DataBase.checkOut(new File("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student" + id + ".txt") , command))
             return "exists";
@@ -208,7 +228,6 @@ class ClientHandlerForLogin extends Thread {
         }
         return "not found";
     }
-
     private List<String> showClass() throws IOException {
         List<String> courses = Files.readAllLines(Paths.get("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student" + id + ".txt"));
         List<String> classes = new ArrayList<>();
@@ -294,4 +313,29 @@ class ClientHandlerForLogin extends Thread {
             throw new RuntimeException(e);
         }
     }
+    private List<String> showToDoList() throws IOException {
+        Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\todolistOfstudent\\student" + id + ".txt");
+        if(!p.toFile().exists())
+            return new ArrayList<>();
+        return Files.readAllLines(p);
+    }
+    private void addToDoList(String s) throws IOException {
+        Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\todolistOfstudent\\student" + id + ".txt");
+        DataBase.add(p.toFile() , s , true);
+    }
+    private void doTask(String s){
+        try {
+            Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\todolistOfstudent\\student" + id + ".txt");
+            DataBase.remove(p.toFile() , s);
+            s = s.substring(0 , s.lastIndexOf("-")+1)+"true";
+            System.out.println(s + " ==== s");
+            if(!DataBase.checkOut(p.toFile() , s)) {
+                DataBase.add(p.toFile(), s, true);
+                System.out.println("do task was successful.");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
