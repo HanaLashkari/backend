@@ -174,6 +174,10 @@ class ClientHandlerForLogin extends Thread {
                     doTask(listener());
                     break;
                 }
+                case "finishTask" :{
+                    finishTask(listener());
+                    break;
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -336,6 +340,10 @@ class ClientHandlerForLogin extends Thread {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+    private void finishTask(String s){
+        Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\todolistOfstudent\\student" + id + ".txt");
+        DataBase.remove(p.toFile() , s);
     }
 
 }
