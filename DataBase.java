@@ -23,13 +23,12 @@ public class DataBase {
         }
     }
     public static void remove(File file , String string){
-        try(FileWriter writer = new FileWriter(file);) {
+        try {
             List<String> strs = Files.readAllLines(file.toPath());
+            Files.delete(file.toPath());
             for(int i=0 ; i<strs.size() ; i++)
                 if(!strs.get(i).contains(string)) {
-                    if(i == 0)
-                        writer.write(string);
-                    else writer.write("\n" + string);
+                    DataBase.add(file , strs.get(i) , true);
                 }
         }catch (Exception e){
             e.printStackTrace();

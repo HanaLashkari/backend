@@ -147,6 +147,11 @@ class ClientHandlerForLogin extends Thread {
                     writer(stringBuffer.toString());
                     break;
                 }
+                case "changeDescription" :{
+                    String title = listener();
+                    String s = listener();
+                    changeProject(title , s);
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -243,7 +248,6 @@ class ClientHandlerForLogin extends Thread {
         }
         return i;
     }
-
     private List<String> showAssignment() throws IOException {
         List<String> assignments = Files.readAllLines(Paths.get("C:\\Users\\Asus\\Desktop\\project\\assignmetOfstudent\\student" + id + ".txt"));
         List<String> allAssignments = new ArrayList<>();
@@ -255,7 +259,6 @@ class ClientHandlerForLogin extends Thread {
         }
         return allAssignments;
     }
-
     private String findGrade(String command) throws IOException {
         Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\gradeOfstudentForcourse\\course" + command + ".txt");
         if(!p.toFile().exists())
@@ -271,5 +274,24 @@ class ClientHandlerForLogin extends Thread {
         }
         return s;
     }
-
+    private void changeProject(String title , String s){
+        String[] parts = s.split("-");
+        try {
+            Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\assignmetOfstudent\\student" + id + ".txt");
+            List<String> assignments = Files.readAllLines(p);
+            for(String a : assignments){
+                if(title.equals(a.split("-")[0])){
+                    System.out.println("assignment is ==== " + a);
+                    DataBase.remove(p.toFile() , a);
+                    String[] p2 = a.split("-");
+                    int time = p2[2].lastIndexOf(",");
+                    StringBuffer sb = new StringBuffer();
+                    sb.append(p2[0]).append("-").append(p2[1]).append("-").append(p2[2].substring(0 , time+1)).append(parts[0]).append("-").append("project").append("-").append(parts[1]).append(",").append(parts[2]);
+                    DataBase.add(p.toFile() , sb.toString() , true);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
