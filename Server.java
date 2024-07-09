@@ -10,6 +10,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 class Server {
+    static Map<String , String> loggedInUsers = new HashMap<>();
     public static void main(String[] args) {
         System.out.println("Welcome to the server!");
         try (ServerSocket serverSocket = new ServerSocket(8000)) {
@@ -29,11 +30,10 @@ class ClientHandlerForLogin extends Thread {
     private Socket socket;
     private DataInputStream dis;
     private DataOutputStream dos;
-    private List<String> loggedInUsers;
     private File studentsFile = new File("C:\\Users\\Asus\\Desktop\\project\\StudentsOfFlutter.txt");
 
-    private String id = "402243094";
-    private String identity = "Hana -402243094";
+    private String id = "";
+    private String identity = "";
 
     public ClientHandlerForLogin(Socket socket) throws IOException {
         this.socket = socket;
@@ -66,7 +66,7 @@ class ClientHandlerForLogin extends Thread {
             System.out.println("error in listener : " + e);}
         return "Error!";
     }
-    public void writer(String write) throws IOException {
+    public void writer(String write) throws IOException, InterruptedException {
         dos.writeBytes(write);
         dos.flush();
         dos.close();
@@ -107,9 +107,15 @@ class ClientHandlerForLogin extends Thread {
     public void run(){
         try {
             String command = listener();
+            id = command.split("-")[0];
+            if(Server.loggedInUsers.containsKey(id)) {
+                identity = Server.loggedInUsers.get(id);
+                command = command.split("-")[1];
+            }
             switch (command){
                 case "login" :{
                     login();
+                    System.out.println("id ====== " + id);
                     break;
                 }
                 case "signup" :{
@@ -180,12 +186,14 @@ class ClientHandlerForLogin extends Thread {
                 }
                 case "showHomePage" :{
                     String s = showHomePage();
-                    System.out.println(s);
+                    System.out.println("show home page ===== " + s);
                     writer(s);
                     break;
                 }
             }
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
@@ -203,8 +211,14 @@ class ClientHandlerForLogin extends Thread {
                 command = "6";
             } else if (command.equals("5")) {
                 DataBase.add(studentsFile, parts[0] + "-" + parts[1] + "-" + parts[2] , true);
-                this.id = parts[1];
-                this.identity = parts[0] + "-" + parts[1];
+                if(id.isEmpty() || id.equals("signup")) {
+                    id = parts[1];
+                    identity = parts[0] + "-" + parts[1];
+                    Server.loggedInUsers.put(id , identity);
+                    System.out.println("the id is not empty");
+                }
+                System.out.println("id === " + id);
+                System.out.println("identity   ===  " + identity);
                 if(!DataBase.checkOut(new File("C:\\Users\\Asus\\Desktop\\project\\Students.txt") , parts[0] + "-" + parts[1])) {
                     DataBase.add(new File("C:\\Users\\Asus\\Desktop\\project\\Students.txt"), parts[0] + "-" + parts[1], true);
                     DataBase.add(new File("C:\\Users\\Asus\\Desktop\\project\\passwords\\studentPassword.txt"), parts[1] + "-" + parts[2], true);
@@ -223,9 +237,19 @@ class ClientHandlerForLogin extends Thread {
             command = listener();
             System.out.println(command + "---------");
             String[] parts = command.split("-");
-            id = parts[1];
-            identity = parts[0] + "-" + parts[1];
-            writer(passwordExistsChecker(command));
+            if(id.isEmpty() || id.equals("login")) {
+                id = parts[1];
+                identity = parts[0] + "-" + parts[1];
+                Server.loggedInUsers.put(id , identity);
+                System.out.println("the id is not empty");
+            }
+            System.out.println("id === " + id);
+            System.out.println("identity   ===  " + identity);
+            String s = passwordExistsChecker(command);
+            if(s.equals("11")){
+                writer(s+"-"+id);
+            }
+            else writer(s);
             System.out.println(command);
 
         }catch (Exception e){
@@ -361,6 +385,7 @@ class ClientHandlerForLogin extends Thread {
         StringBuffer stringBuffer = new StringBuffer();
         try {
             stringBuffer.append(numberOfAssignment(id , "student")).append(",");
+            System.out.println("id for show home :::::: " + id);
             List<String> classes = Files.readAllLines(Paths.get("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student"+id+".txt"));
             int numberOfExam = 0;
             List<String> exams = Files.readAllLines(Paths.get("C:\\Users\\Asus\\Desktop\\project\\Exams.txt"));

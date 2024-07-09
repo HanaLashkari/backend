@@ -22,6 +22,7 @@ public class DataBase {
             e.printStackTrace();
         }
     }
+
     public static void remove(File file , String string){
         try {
             List<String> strs = Files.readAllLines(file.toPath());
