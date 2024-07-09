@@ -179,7 +179,9 @@ class ClientHandlerForLogin extends Thread {
                     break;
                 }
                 case "showHomePage" :{
-
+                    String s = showHomePage();
+                    System.out.println(s);
+                    writer(s);
                     break;
                 }
             }
@@ -353,7 +355,7 @@ class ClientHandlerForLogin extends Thread {
         Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\todolistOfstudent\\student" + id + ".txt");
         DataBase.remove(p.toFile() , s);
     }
-    private void showHomePage(String s){
+    private String showHomePage(){
         StringBuffer stringBuffer = new StringBuffer();
         try {
             stringBuffer.append(numberOfAssignment(id , "student")).append(",");
@@ -378,7 +380,7 @@ class ClientHandlerForLogin extends Thread {
             }
             stringBuffer.append("#");
             list = showAssignment();
-            for(int i=list.size()-1 ; i>=0 ; i++) {
+            for(int i=list.size()-1 ; i>=0 ; i--) {
                 if(!list.get(i).split("-")[3].contains(","))
                     list.remove(i);
             }
@@ -391,6 +393,7 @@ class ClientHandlerForLogin extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return stringBuffer.toString();
     }
 
 }
