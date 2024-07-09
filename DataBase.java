@@ -25,6 +25,8 @@ public class DataBase {
 
     public static void remove(File file , String string){
         try {
+            if(!file.exists())
+                return;
             List<String> strs = Files.readAllLines(file.toPath());
             Files.delete(file.toPath());
             for(int i=0 ; i<strs.size() ; i++)
@@ -47,6 +49,8 @@ public class DataBase {
     }
 
     public static String CheckoutBackString(File file , String string) throws IOException {
+        if(!file.exists())
+            return "not found";
         List<String> list = Files.readAllLines(file.toPath());
         for (String s : list ){
             //System.out.println("s = "+s);

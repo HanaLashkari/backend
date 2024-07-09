@@ -31,21 +31,17 @@ class ClientHandlerForLogin extends Thread {
     private DataInputStream dis;
     private DataOutputStream dos;
     private File studentsFile = new File("C:\\Users\\Asus\\Desktop\\project\\StudentsOfFlutter.txt");
-
     private String id = "";
     private String identity = "";
-
     public ClientHandlerForLogin(Socket socket) throws IOException {
         this.socket = socket;
         dis = new DataInputStream(socket.getInputStream());
         dos = new DataOutputStream(socket.getOutputStream());
         System.out.println("connected to server");
     }
-
     public ClientHandlerForLogin() {
 
     }
-
     public String listener() throws IOException {
         try{
             System.out.println("listener is activated");
@@ -72,35 +68,8 @@ class ClientHandlerForLogin extends Thread {
         dos.close();
         dis.close();
         socket.close();
-        System.out.println(write);
+        System.out.println("writer = " + write);
         System.out.println("command finished and response sent to server");
-    }
-    private String passwordExistsChecker(String s){
-        String respond = "";
-        try {
-            List<String> strs = Files.readAllLines(studentsFile.toPath());
-            String[] NIP = s.split("-");
-            System.out.println(Arrays.toString(NIP));
-            for(String string : strs){
-                String[] parts = string.split("-");
-                for(int i=1 ; i<3 ; i++)
-                    respond += parts[i].equals(NIP[i]) ? "1" : "0";
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return respond;
-    }
-    private boolean studentExists(String s){
-        try {
-            List<String> strs = Files.readAllLines(studentsFile.toPath());
-            for(String string : strs)
-                if (string.equals(s))
-                    return true;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return false;
     }
 
     @Override
@@ -108,9 +77,12 @@ class ClientHandlerForLogin extends Thread {
         try {
             String command = listener();
             id = command.split("-")[0];
+            id = !id.equals("login") && !id.equals("signup") ? id : "";
+            System.out.println("iddddddd = "+id +"  "+Server.loggedInUsers.containsKey(id));
             if(Server.loggedInUsers.containsKey(id)) {
                 identity = Server.loggedInUsers.get(id);
                 command = command.split("-")[1];
+                System.out.println("command   ======   "+command);
             }
             switch (command){
                 case "login" :{
@@ -120,13 +92,24 @@ class ClientHandlerForLogin extends Thread {
                 }
                 case "signup" :{
                     signup();
+                    submitInformation();
+                    break;
+                }
+                case "showInformation" :{
+                    submitInformation();
+                    String s = showInformation();
+                    Thread.sleep(1000);
+                    System.out.println("show information   ====  " + s);
+                    writer(s);
                     break;
                 }
                 case "changeInformation":{
                     break;
                 }
                 case "addClass" :{
-                    writer(addClass(listener()));
+                    String s = listener();
+                    System.out.println("here in add class =======  " + s);
+                    writer(addClass(s));
                     break;
                 }
                 case "showClasses" :{
@@ -190,6 +173,19 @@ class ClientHandlerForLogin extends Thread {
                     writer(s);
                     break;
                 }
+                case "exit" :{
+                    Server.loggedInUsers.remove(id);
+                    id = "";
+                    identity = "";
+                    break;
+                }
+                case "delete" :{
+                    delete();
+                    Server.loggedInUsers.remove(id);
+                    id = "";
+                    identity = "";
+                    break;
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -197,7 +193,43 @@ class ClientHandlerForLogin extends Thread {
             throw new RuntimeException(e);
         }
     }
-
+    private String passwordExistsChecker(String s){
+        String respond = "";
+        try {
+            List<String> strs = Files.readAllLines(studentsFile.toPath());
+            String[] NIP = s.split("-");
+            System.out.println(Arrays.toString(NIP));
+            for(String string : strs){
+                String[] parts = string.split("-");
+                String ssss = "";
+                for(int i=1 ; i<3 ; i++)
+                    ssss += parts[i].equals(NIP[i]) ? "1" : "0";
+                if(ssss.equals("11")) {
+                    respond = ssss;
+                    break;
+                } else if (ssss.equals("10")) {
+                    respond = ssss;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(respond.isEmpty())
+            respond = "00";
+        System.out.println("response in passwordExistsChecker   ======  " + respond);
+        return respond;
+    }
+    private boolean studentExists(String s){
+        try {
+            List<String> strs = Files.readAllLines(studentsFile.toPath());
+            for(String string : strs)
+                if (string.equals(s))
+                    return true;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return false;
+    }
     private void signup() {
         String command = "";
         try {
@@ -217,12 +249,14 @@ class ClientHandlerForLogin extends Thread {
                     Server.loggedInUsers.put(id , identity);
                     System.out.println("the id is not empty");
                 }
+                Server.loggedInUsers.put(id , identity);
                 System.out.println("id === " + id);
                 System.out.println("identity   ===  " + identity);
                 if(!DataBase.checkOut(new File("C:\\Users\\Asus\\Desktop\\project\\Students.txt") , parts[0] + "-" + parts[1])) {
                     DataBase.add(new File("C:\\Users\\Asus\\Desktop\\project\\Students.txt"), parts[0] + "-" + parts[1], true);
                     DataBase.add(new File("C:\\Users\\Asus\\Desktop\\project\\passwords\\studentPassword.txt"), parts[1] + "-" + parts[2], true);
                 }
+                command += ("-" + id);
             }
             writer(command);
             System.out.println(command);
@@ -257,6 +291,41 @@ class ClientHandlerForLogin extends Thread {
         }
         System.out.println("login was completed.");
     }
+    private void submitInformation() throws IOException {
+        StringBuffer stringBuffer = new StringBuffer();
+        stringBuffer.append(identity).append("-");
+        Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student"+id+".txt");
+        if(!p.toFile().exists())
+            Files.createFile(p);
+        int num = 0;
+        List<String> courses = Files.readAllLines(p);
+        for(String c : courses)
+            num += Integer.parseInt(c.split("-")[2]);
+        stringBuffer.append(num).append("-");
+        p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\gradeOfstudent\\student" + id + ".txt");
+        if(!p.toFile().exists())
+            Files.createFile(p);
+        double sum = 0;
+        List<String> grades = Files.readAllLines(p);
+        for(String g : grades)
+            sum += Double.parseDouble(g.split("-")[1]);
+        stringBuffer.append(sum/grades.size());
+        p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\informationOfstudentForFlutter.txt");
+        if(!DataBase.checkOut(p.toFile() , identity))
+            DataBase.add(p.toFile() , stringBuffer.toString() , true);
+        else if (DataBase.checkOut(p.toFile() , identity) && !DataBase.checkOut(p.toFile() , stringBuffer.toString())) {
+            DataBase.remove(p.toFile() , identity);
+            DataBase.add(p.toFile() , stringBuffer.toString() , true);
+        }
+    }
+    private String showInformation() throws IOException {
+        Path file = Paths.get("C:\\Users\\Asus\\Desktop\\project\\informationOfstudentForFlutter.txt");
+        if(!file.toFile().exists())
+            Files.createFile(file);
+        if(!DataBase.checkOut(file.toFile() , id))
+            return "not complete";
+        return DataBase.CheckoutBackString(file.toFile() , id);
+    }
     private String addClass(String command) throws IOException {
         if(DataBase.checkOut(new File("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student" + id + ".txt") , command))
             return "exists";
@@ -269,6 +338,8 @@ class ClientHandlerForLogin extends Thread {
         return "not found";
     }
     private List<String> showClass() throws IOException {
+        if(!Paths.get("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student" + id + ".txt").toFile().exists())
+            return new ArrayList<>();
         List<String> courses = Files.readAllLines(Paths.get("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student" + id + ".txt"));
         List<String> classes = new ArrayList<>();
         for (String course : courses){
@@ -337,6 +408,8 @@ class ClientHandlerForLogin extends Thread {
         String[] parts = s.split("-");
         try {
             Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\assignmetOfstudent\\student" + id + ".txt");
+            if(!p.toFile().exists())
+                return;
             List<String> assignments = Files.readAllLines(p);
             for(String a : assignments){
                 if(title.equals(a.split("-")[0])){
@@ -366,6 +439,8 @@ class ClientHandlerForLogin extends Thread {
     private void doTask(String s){
         try {
             Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\todolistOfstudent\\student" + id + ".txt");
+            if(!p.toFile().exists())
+                return;
             DataBase.remove(p.toFile() , s);
             s = s.substring(0 , s.lastIndexOf("-")+1)+"true";
             System.out.println(s + " ==== s");
@@ -386,6 +461,8 @@ class ClientHandlerForLogin extends Thread {
         try {
             stringBuffer.append(numberOfAssignment(id , "student")).append(",");
             System.out.println("id for show home :::::: " + id);
+            if(!Files.exists(Paths.get("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student"+id+".txt")))
+                return stringBuffer.append("0").toString();
             List<String> classes = Files.readAllLines(Paths.get("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student"+id+".txt"));
             int numberOfExam = 0;
             List<String> exams = Files.readAllLines(Paths.get("C:\\Users\\Asus\\Desktop\\project\\Exams.txt"));
@@ -396,6 +473,8 @@ class ClientHandlerForLogin extends Thread {
             }
             stringBuffer.append(numberOfExam).append(",");
             Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\gradeOfstudent\\student" + id + ".txt");
+            if(!Files.exists(p))
+                Files.createFile(p);
             String best = Files.readAllLines(p).stream().map(a -> a.split("-")[1]).sorted().toList().getLast();
             String worst = Files.readAllLines(p).stream().map(a -> a.split("-")[1]).sorted().toList().getFirst();
             stringBuffer.append(worst).append(",").append(best).append("#");
@@ -421,6 +500,32 @@ class ClientHandlerForLogin extends Thread {
             e.printStackTrace();
         }
         return stringBuffer.toString();
+    }
+    private void delete(){
+        try {
+            DataBase.remove(new File("C:\\Users\\Asus\\Desktop\\project\\StudentsOfFlutter.txt") , id);
+            DataBase.remove(new File("C:\\Users\\Asus\\Desktop\\project\\Students.txt") , id);
+            DataBase.remove(new File("C:\\Users\\Asus\\Desktop\\project\\informationOfstudentForFlutter.txt") , id);
+            DataBase.remove(new File("C:\\Users\\Asus\\Desktop\\project\\passwords\\studentPassword.txt") , id);
+            Files.delete(Paths.get("C:\\Users\\Asus\\Desktop\\project\\todolistOfstudent\\student" + id + ".txt"));
+            Files.delete(Paths.get("C:\\Users\\Asus\\Desktop\\project\\gradeOfstudent\\student" + id + ".txt"));
+            Files.delete(Paths.get("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student" + id + ".txt"));
+            Files.delete(Paths.get("C:\\Users\\Asus\\Desktop\\project\\assignmetOfstudent\\student" + id + ".txt"));
+            Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\Courses.txt");
+            if(!Files.exists(p))
+                Files.createFile(p);
+            List<String> list = Files.readAllLines(p);
+            for(String l : list){
+                File file = new File("C:\\Users\\Asus\\Desktop\\project\\studentOfcourse\\course"+l.split("-")[1]+".txt");
+                if(Files.exists(file.toPath()))
+                    if(DataBase.checkOut( file, id))
+                        DataBase.remove(file , id);
+                file = new File("C:\\Users\\Asus\\Desktop\\project\\gradeOfstudentForcourse\\course"+l.split("-")[1]+".txt");
+                if(Files.exists(file.toPath()))
+                    if(DataBase.checkOut( file, id))
+                        DataBase.remove(file , id);
+            }
+        }catch (Exception e){}
     }
 
 }
