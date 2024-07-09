@@ -117,7 +117,7 @@ class ClientHandlerForLogin extends Thread {
                     break;
                 }
                 case "changeInformation":{
-
+                    break;
                 }
                 case "addClass" :{
                     writer(addClass(listener()));
@@ -178,6 +178,10 @@ class ClientHandlerForLogin extends Thread {
                     finishTask(listener());
                     break;
                 }
+                case "showHomePage" :{
+
+                    break;
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -197,6 +201,10 @@ class ClientHandlerForLogin extends Thread {
                 command = "6";
             } else if (command.equals("5")) {
                 DataBase.add(studentsFile, parts[0] + "-" + parts[1] + "-" + parts[2] , true);
+                if(!DataBase.checkOut(new File("C:\\Users\\Asus\\Desktop\\project\\Students.txt") , parts[0] + "-" + parts[1])) {
+                    DataBase.add(new File("C:\\Users\\Asus\\Desktop\\project\\Students.txt"), parts[0] + "-" + parts[1], true);
+                    DataBase.add(new File("C:\\Users\\Asus\\Desktop\\project\\passwords\\studentPassword.txt"), parts[1] + "-" + parts[2], true);
+                }
             }
             writer(command);
             System.out.println(command);
@@ -239,7 +247,7 @@ class ClientHandlerForLogin extends Thread {
             String[] parts = course.split("-");
             StringBuffer s = new StringBuffer();
             s.append(parts[0]).append("-").append(parts[3]).append("-").append(parts[2]).append("-")
-                    .append(numberOfAssignment(course.split("-")[1])).append("-").append(bestStudent(course.split("-")[1]));
+                    .append(numberOfAssignment(course.split("-")[1] , "course")).append("-").append(bestStudent(course.split("-")[1]));
             classes.add(s.toString());
         }
         return classes;
@@ -259,10 +267,10 @@ class ClientHandlerForLogin extends Thread {
         }
         return best;
     }
-    private int numberOfAssignment(String command) {
+    private int numberOfAssignment(String command , String keyWord) {
         int i = 0;
         try {
-            Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\assignmentOfcourse\\course" + command + ".txt");
+            Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\assignmentOf"+keyWord+"\\" + keyWord + command + ".txt");
             if(p.toFile().exists())
                 i = Files.readAllLines(p).size();
         } catch (IOException e) {
@@ -344,6 +352,45 @@ class ClientHandlerForLogin extends Thread {
     private void finishTask(String s){
         Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\todolistOfstudent\\student" + id + ".txt");
         DataBase.remove(p.toFile() , s);
+    }
+    private void showHomePage(String s){
+        StringBuffer stringBuffer = new StringBuffer();
+        try {
+            stringBuffer.append(numberOfAssignment(id , "student")).append(",");
+            List<String> classes = Files.readAllLines(Paths.get("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student"+id+".txt"));
+            int numberOfExam = 0;
+            List<String> exams = Files.readAllLines(Paths.get("C:\\Users\\Asus\\Desktop\\project\\Exams.txt"));
+            for (String c : classes){
+                for(String e : exams)
+                    if(c.split("-")[1].equals(e))
+                        numberOfExam++;
+            }
+            stringBuffer.append(numberOfExam).append(",");
+            Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\gradeOfstudent\\student" + id + ".txt");
+            String best = Files.readAllLines(p).stream().map(a -> a.split("-")[1]).sorted().toList().getLast();
+            String worst = Files.readAllLines(p).stream().map(a -> a.split("-")[1]).sorted().toList().getFirst();
+            stringBuffer.append(worst).append(",").append(best).append("#");
+            List<String> list = showToDoList();
+            for(int i=0 ; i< list.size() ; i++) {
+                if (i == list.size() - 1)
+                    stringBuffer.append(list.get(i));
+                else stringBuffer.append(list.get(i)).append("=");
+            }
+            stringBuffer.append("#");
+            list = showAssignment();
+            for(int i=list.size()-1 ; i>=0 ; i++) {
+                if(!list.get(i).split("-")[3].contains(","))
+                    list.remove(i);
+            }
+            for(int i=0 ; i< list.size() ; i++) {
+                if (i == list.size() - 1)
+                    stringBuffer.append(list.get(i));
+                else stringBuffer.append(list.get(i)).append("=");
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
