@@ -203,6 +203,8 @@ class ClientHandlerForLogin extends Thread {
                 command = "6";
             } else if (command.equals("5")) {
                 DataBase.add(studentsFile, parts[0] + "-" + parts[1] + "-" + parts[2] , true);
+                this.id = parts[1];
+                this.identity = parts[0] + "-" + parts[1];
                 if(!DataBase.checkOut(new File("C:\\Users\\Asus\\Desktop\\project\\Students.txt") , parts[0] + "-" + parts[1])) {
                     DataBase.add(new File("C:\\Users\\Asus\\Desktop\\project\\Students.txt"), parts[0] + "-" + parts[1], true);
                     DataBase.add(new File("C:\\Users\\Asus\\Desktop\\project\\passwords\\studentPassword.txt"), parts[1] + "-" + parts[2], true);
