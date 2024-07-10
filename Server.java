@@ -379,7 +379,10 @@ class ClientHandlerForLogin extends Thread {
         return i;
     }
     private List<String> showAssignment() throws IOException {
-        List<String> assignments = Files.readAllLines(Paths.get("C:\\Users\\Asus\\Desktop\\project\\assignmetOfstudent\\student" + id + ".txt"));
+        Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\assignmetOfstudent\\student" + id + ".txt");
+        if(!Files.exists(p))
+            Files.createFile(p);
+        List<String> assignments = Files.readAllLines(p);
         List<String> allAssignments = new ArrayList<>();
         for (String assignment : assignments){
             String[] parts = assignment.split("-");
@@ -475,8 +478,12 @@ class ClientHandlerForLogin extends Thread {
             Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\gradeOfstudent\\student" + id + ".txt");
             if(!Files.exists(p))
                 Files.createFile(p);
-            String best = Files.readAllLines(p).stream().map(a -> a.split("-")[1]).sorted().toList().getLast();
-            String worst = Files.readAllLines(p).stream().map(a -> a.split("-")[1]).sorted().toList().getFirst();
+            String best = "0";
+            String worst = "0";
+            if(!Files.readAllLines(p).isEmpty()) {
+                best = Files.readAllLines(p).stream().map(a -> a.split("-")[1]).sorted().toList().getLast();
+                worst = Files.readAllLines(p).stream().map(a -> a.split("-")[1]).sorted().toList().getFirst();
+            }
             stringBuffer.append(worst).append(",").append(best).append("#");
             List<String> list = showToDoList();
             for(int i=0 ; i< list.size() ; i++) {
@@ -507,25 +514,34 @@ class ClientHandlerForLogin extends Thread {
             DataBase.remove(new File("C:\\Users\\Asus\\Desktop\\project\\Students.txt") , id);
             DataBase.remove(new File("C:\\Users\\Asus\\Desktop\\project\\informationOfstudentForFlutter.txt") , id);
             DataBase.remove(new File("C:\\Users\\Asus\\Desktop\\project\\passwords\\studentPassword.txt") , id);
-            Files.delete(Paths.get("C:\\Users\\Asus\\Desktop\\project\\todolistOfstudent\\student" + id + ".txt"));
-            Files.delete(Paths.get("C:\\Users\\Asus\\Desktop\\project\\gradeOfstudent\\student" + id + ".txt"));
-            Files.delete(Paths.get("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student" + id + ".txt"));
-            Files.delete(Paths.get("C:\\Users\\Asus\\Desktop\\project\\assignmetOfstudent\\student" + id + ".txt"));
+            if (Files.exists(Paths.get("C:\\Users\\Asus\\Desktop\\project\\todolistOfstudent\\student" + id + ".txt")))
+                Files.delete(Paths.get("C:\\Users\\Asus\\Desktop\\project\\todolistOfstudent\\student" + id + ".txt"));
+            if(Files.exists(Paths.get("C:\\Users\\Asus\\Desktop\\project\\gradeOfstudent\\student" + id + ".txt")))
+                Files.delete(Paths.get("C:\\Users\\Asus\\Desktop\\project\\gradeOfstudent\\student" + id + ".txt"));
+            if(Files.exists(Paths.get("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student" + id + ".txt")))
+                Files.delete(Paths.get("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student" + id + ".txt"));
+            if(Files.exists(Paths.get("C:\\Users\\Asus\\Desktop\\project\\assignmetOfstudent\\student" + id + ".txt")))
+                Files.delete(Paths.get("C:\\Users\\Asus\\Desktop\\project\\assignmetOfstudent\\student" + id + ".txt"));
             Path p = Paths.get("C:\\Users\\Asus\\Desktop\\project\\Courses.txt");
             if(!Files.exists(p))
                 Files.createFile(p);
             List<String> list = Files.readAllLines(p);
             for(String l : list){
                 File file = new File("C:\\Users\\Asus\\Desktop\\project\\studentOfcourse\\course"+l.split("-")[1]+".txt");
+                System.out.println(l.split("-")[1]);
+                System.out.println("courese   =====  " + l);
                 if(Files.exists(file.toPath()))
-                    if(DataBase.checkOut( file, id))
+                    if(DataBase.checkOut(file, id))
                         DataBase.remove(file , id);
                 file = new File("C:\\Users\\Asus\\Desktop\\project\\gradeOfstudentForcourse\\course"+l.split("-")[1]+".txt");
                 if(Files.exists(file.toPath()))
                     if(DataBase.checkOut( file, id))
                         DataBase.remove(file , id);
             }
-        }catch (Exception e){}
+        }catch (Exception e){e.printStackTrace();}
+    }
+    private void changeInformation(String s){
+
     }
 
 }
