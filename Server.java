@@ -465,12 +465,15 @@ class ClientHandlerForLogin extends Thread {
     private String showHomePage(){
         StringBuffer stringBuffer = new StringBuffer();
         try {
-            stringBuffer.append(numberOfAssignment(id , "student")).append(",");
+            Path path = Paths.get("C:\\Users\\Asus\\Desktop\\project\\assignmetOfstudent\\student" + id + ".txt");
+            if(!Files.exists(path))
+                Files.createFile(path);
+            stringBuffer.append(Files.readAllLines(path).size()).append(",");
             System.out.println("id for show home :::::: " + id);
             if(!Files.exists(Paths.get("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student"+id+".txt")))
                 return stringBuffer.append("0").toString();
             List<String> classes = Files.readAllLines(Paths.get("C:\\Users\\Asus\\Desktop\\project\\courseOfstudent\\student"+id+".txt"));
-            int numberOfExam = 0;
+            int numberOfExam = classes.size();
             List<String> exams = Files.readAllLines(Paths.get("C:\\Users\\Asus\\Desktop\\project\\Exams.txt"));
             for (String c : classes){
                 for(String e : exams)
