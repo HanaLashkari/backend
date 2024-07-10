@@ -420,7 +420,7 @@ class ClientHandlerForLogin extends Thread {
             for(String a : assignments){
                 if(title.equals(a.split("-")[0])){
                     System.out.println("assignment is ==== " + a);
-                    DataBase.remove(p.toFile() , a);
+                    DataBase.remove(p.toFile() , title);
                     String[] p2 = a.split("-");
                     int time = p2[2].lastIndexOf(",");
                     StringBuffer sb = new StringBuffer();
