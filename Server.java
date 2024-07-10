@@ -83,7 +83,8 @@ class ClientHandlerForLogin extends Thread {
                 identity = Server.loggedInUsers.get(id);
                 command = command.split("-")[1];
                 System.out.println("command   ======   "+command);
-            }
+            }if(command.split("-").length>1)
+                command = command.split("-")[1];
             switch (command){
                 case "login" :{
                     login();
@@ -104,6 +105,8 @@ class ClientHandlerForLogin extends Thread {
                     break;
                 }
                 case "changeInformation":{
+                    System.out.println("--------------changeInformation -------------");
+                    changeInformation();
                     break;
                 }
                 case "addClass" :{
@@ -540,8 +543,29 @@ class ClientHandlerForLogin extends Thread {
             }
         }catch (Exception e){e.printStackTrace();}
     }
-    private void changeInformation(String s){
-
+    private void changeInformation(){
+        String command = "";
+        try {
+            command = listener();
+            String[] parts = command.split("-");
+            command = PasswordValidator.checkPass(parts[1]);
+            if (parts[1].contains(parts[0]) || parts[1].equals(id)) {
+                command = "6";
+            } else if (command.equals("5")) {
+                DataBase.remove(studentsFile , id);
+                DataBase.add(studentsFile, parts[0] + "-" + id + "-" + parts[1] , true);
+                DataBase.remove(new File("C:\\Users\\Asus\\Desktop\\project\\Students.txt") , id);
+                DataBase.add(new File("C:\\Users\\Asus\\Desktop\\project\\Students.txt"), parts[0] + "-" + id, true);
+                DataBase.remove(new File("C:\\Users\\Asus\\Desktop\\project\\passwords\\studentPassword.txt") , id);
+                DataBase.add(new File("C:\\Users\\Asus\\Desktop\\project\\passwords\\studentPassword.txt"), id + "-" + parts[1], true);
+                command += ("-" + id);
+            }
+            writer(command);
+            System.out.println(command);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("change information was completed.");
+        }
     }
 
 }
